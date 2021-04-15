@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'src/../number_col.dart';
 
+/// For color change we need to check here when the number changes.
+/// If it increases then the next change to the NumberCol widgets should
+/// first animate green, then animate back to the normal color.
+/// Same for decrease but with red.
 class NumberSlideAnimation extends StatefulWidget {
   NumberSlideAnimation({
     required this.number,

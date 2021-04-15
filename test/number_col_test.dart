@@ -9,7 +9,7 @@ void main() {
               duration: const Duration(seconds: 1),
               curve: Curves.easeIn,
               textStyle: TextStyle(fontSize: 16.0),
-              animateTo: 10,
+              number: 10,
             ),
         throwsAssertionError);
     expect(
@@ -17,7 +17,7 @@ void main() {
               duration: const Duration(seconds: 1),
               curve: Curves.easeIn,
               textStyle: TextStyle(fontSize: 16.0),
-              animateTo: -100,
+              number: -100,
             ),
         throwsAssertionError);
     expect(
@@ -25,7 +25,7 @@ void main() {
               duration: const Duration(seconds: 1),
               curve: Curves.easeIn,
               textStyle: TextStyle(fontSize: 16.0),
-              animateTo: 100,
+              number: 100,
             ),
         throwsAssertionError);
   });

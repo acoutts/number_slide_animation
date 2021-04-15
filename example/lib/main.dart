@@ -26,22 +26,64 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class Example extends StatelessWidget {
+class Example extends StatefulWidget {
+  @override
+  _ExampleState createState() => _ExampleState();
+}
+
+class _ExampleState extends State<Example> {
+  var number = 0.00;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Simple Example"),
       ),
-      body: Container(
-          child: Center(
-        child: NumberSlideAnimation(
-          number: "12345678987654321",
-          duration: const Duration(seconds: 2),
-          curve: Curves.decelerate,
-          textStyle: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-        ),
-      )),
+      body: Column(
+        children: [
+          Center(
+            child: Text(
+              number.toStringAsFixed(2),
+              style: TextStyle(
+                fontSize: 40,
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 40,
+          ),
+          Center(
+            child: NumberSlideAnimation(
+              number: number.toStringAsFixed(2),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.ease,
+              textStyle: TextStyle(
+                fontSize: 40.0,
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 40,
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                number = number + 0.19;
+              });
+            },
+            child: Text('up'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                number = number - 0.24;
+              });
+            },
+            child: Text('down'),
+          ),
+        ],
+      ),
     );
   }
 }

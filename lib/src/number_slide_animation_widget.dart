@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'src/../number_col.dart';
 
-/// This widget will display the provided [number] given in the constructor
-///
-/// It will be displayed shortly after a neat transition in which each number
-/// slides into its place
 class NumberSlideAnimation extends StatefulWidget {
+  NumberSlideAnimation({
+    required this.number,
+    this.textStyle = const TextStyle(fontSize: 16.0),
+    this.duration = const Duration(milliseconds: 500),
+    this.curve = Curves.easeIn,
+  });
+
   /// The number that should be displayed
   ///
   /// It should fit following constraints:
@@ -30,55 +33,59 @@ class NumberSlideAnimation extends StatefulWidget {
   /// defaults to: Curves.easeIn
   final Curve curve;
 
-  NumberSlideAnimation({
-    required this.number,
-    this.textStyle = const TextStyle(fontSize: 16.0),
-    this.duration = const Duration(milliseconds: 1500),
-    this.curve = Curves.easeIn,
-  }) : assert(int.tryParse(number) != null);
-
   @override
   _NumberSlideAnimationState createState() => _NumberSlideAnimationState();
 }
 
 class _NumberSlideAnimationState extends State<NumberSlideAnimation> {
-  double _width = 1000.0;
-
-  GlobalKey _rowKey = GlobalKey();
-
   @override
-  void initState() {
-    super.initState();
+  void didUpdateWidget(oldWidget) {
+    final increased =
+        double.parse(widget.number) > double.parse(oldWidget.number);
+    colorTween = ColorTween(
+      begin: widget.textStyle.color,
+      end: increased ? widget.increaseColor : widget.decreaseColor,
+    );
 
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
-      print(getRowSize().width.toString());
-      setState(() {
-        _width = getRowSize().width;
+    colorAnimation = colorTween.animate(animationController)
+      ..addListener(() {
+        print('animating');
+        setState(() {});
       });
 
-      print(_width.toString());
-    });
-  }
+    animationController.reset();
+    animationController.forward();
 
-  Size getRowSize() {
-    final RenderBox box =
-        _rowKey.currentContext!.findRenderObject() as RenderBox;
-    return box.size;
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      key: _rowKey,
-      children: List.generate(widget.number.length, (position) {
-        return NumberCol(
-          animateTo: int.parse(widget.number[position]),
-          textStyle: widget.textStyle,
-          duration: widget.duration,
-          curve: widget.curve,
-        );
-      }),
+      children: [
+        ...widget.number.characters.map((e) {
+          final isDigit = RegExp(r'\d').hasMatch(e);
+
+          /// If it's not a digit then just return a text widget
+          /// to dispaly that character.
+          if (!isDigit) {
+            return Text(
+              e,
+              style: widget.textStyle,
+            );
+          }
+
+          return NumberCol(
+            number: int.parse(e),
+            textStyle: widget.textStyle,
+            duration: widget.duration,
+            curve: widget.curve,
+            increaseColor: Color(0xFF28AFB0),
+            decreaseColor: Color(0xFFDF9097),
+          );
+        }).toList(),
+      ],
     );
   }
 }

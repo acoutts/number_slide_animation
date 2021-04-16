@@ -1,26 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:number_slide_animation/src/last_change.dart';
 
 /// Each [NumberCol] has the numbers 0-9 stacked inside of a [SingleChildScrollView]
 /// via a [ScrollController] the position will be animated to the requested number
 class NumberCol extends StatefulWidget {
-  /// The number the col should animate to
+  /// The numeric value that should be displayed, formatted as a string.
+  /// This could be a currency like `$32.00` or just a number `5.00`.
   final int number;
 
-  /// The [TextStyle] of the number
+  /// The TextStyle to use.
   final TextStyle textStyle;
 
-  /// The [Duration] the animation will take to slide the number into place
-  final Duration duration;
+  /// Duration of number change animation.
+  final Duration numberDuration;
 
-  /// The curve that is used during the animation
-  final Curve curve;
+  /// Curve for number change animation.
+  final Curve numberCurve;
+
+  /// Whether the value has increased, decreased, or is no change
+  final NumberChange latestChange;
+
+  /// Duration of color change animation.
+  final Duration colorDuration;
+
+  /// Curve for color change animation.
+  final Curve colorCurve;
+
+  /// Colors for number increase/decrease
+  final Color increaseColor;
+  final Color decreaseColor;
 
   NumberCol({
     required this.number,
     required this.textStyle,
-    required this.duration,
-    required this.curve,
-  }) : assert(number >= 0 && number < 10);
+    required this.numberDuration,
+    required this.numberCurve,
+    required this.latestChange,
+    required this.increaseColor,
+    required this.decreaseColor,
+    required this.colorCurve,
+    required this.colorDuration,
+  });
 
   @override
   _NumberColState createState() => _NumberColState();
@@ -29,7 +49,7 @@ class NumberCol extends StatefulWidget {
 class _NumberColState extends State<NumberCol>
     with SingleTickerProviderStateMixin {
   final _scrollController = ScrollController();
-  late final AnimationController animationController;
+  late final AnimationController colorAnimationController;
   late ColorTween colorTween;
   late Animation colorAnimation;
 
@@ -40,59 +60,80 @@ class _NumberColState extends State<NumberCol>
   void initState() {
     super.initState();
 
-    animationController = AnimationController(
+    colorAnimationController = AnimationController(
       vsync: this,
-      duration: Duration(
-        milliseconds: 300,
-      ),
+      duration: widget.colorDuration,
     );
 
     colorTween = ColorTween(
       begin: widget.textStyle.color,
-      end: widget.textStyle.color,
+      end: widget.latestChange == NumberChange.increase
+          ? widget.increaseColor
+          : widget.latestChange == NumberChange.decrease
+              ? widget.decreaseColor
+              : widget.textStyle.color,
     );
 
-    colorAnimation = colorTween.animate(animationController)
+    colorAnimation = colorTween.animate(CurvedAnimation(
+      parent: colorAnimationController,
+      curve: widget.colorCurve,
+    ))
       ..addListener(() {
-        print('animating');
         setState(() {});
       });
+
+    colorAnimationController.forward().whenComplete(() {
+      colorAnimationController.reverse();
+    });
 
     WidgetsBinding.instance?.addPostFrameCallback((_) {
       _elementSize = _scrollController.position.maxScrollExtent / 10;
       setState(() {});
 
-      _scrollController.animateTo(_elementSize * widget.number,
-          duration: widget.duration, curve: widget.curve);
+      _scrollController.animateTo(
+        _elementSize * widget.number,
+        duration: widget.numberDuration,
+        curve: widget.numberCurve,
+      );
     });
   }
 
   @override
   void dispose() {
-    animationController.dispose();
+    colorAnimationController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
   @override
   void didUpdateWidget(oldWidget) {
-    _scrollController.animateTo(_elementSize * widget.number,
-        duration: widget.duration, curve: widget.curve);
-
-    final increased = widget.number > oldWidget.number;
-    colorTween = ColorTween(
-      begin: widget.textStyle.color,
-      end: increased ? widget.increaseColor : widget.decreaseColor,
+    _scrollController.animateTo(
+      _elementSize * widget.number,
+      duration: widget.numberDuration,
+      curve: widget.numberCurve,
     );
 
-    colorAnimation = colorTween.animate(animationController)
-      ..addListener(() {
-        print('animating');
-        setState(() {});
-      });
+    if (widget.number != oldWidget.number &&
+        widget.latestChange != NumberChange.noChange) {
+      colorTween = ColorTween(
+        begin: widget.textStyle.color,
+        end: widget.latestChange == NumberChange.increase
+            ? widget.increaseColor
+            : widget.latestChange == NumberChange.decrease
+                ? widget.decreaseColor
+                : widget.textStyle.color,
+      );
 
-    animationController.reset();
-    animationController.forward();
+      colorAnimation = colorTween.animate(CurvedAnimation(
+          parent: colorAnimationController, curve: widget.numberCurve))
+        ..addListener(() {
+          setState(() {});
+        });
+
+      colorAnimationController.forward().whenComplete(() {
+        colorAnimationController.reverse();
+      });
+    }
 
     super.didUpdateWidget(oldWidget);
   }

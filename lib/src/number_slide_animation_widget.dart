@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:number_slide_animation/src/last_change.dart';
 
 import 'src/../number_col.dart';
 
@@ -9,56 +10,65 @@ import 'src/../number_col.dart';
 class NumberSlideAnimation extends StatefulWidget {
   NumberSlideAnimation({
     required this.number,
-    this.textStyle = const TextStyle(fontSize: 16.0),
-    this.duration = const Duration(milliseconds: 500),
-    this.curve = Curves.easeIn,
+    required this.parseNumber,
+    required this.textStyle,
+    required this.increaseColor,
+    required this.decreaseColor,
+    this.numberDuration = const Duration(milliseconds: 500),
+    this.numberCurve = Curves.easeIn,
+    this.colorCurve = Curves.easeOut,
+    this.colorDuration = const Duration(milliseconds: 500),
   });
 
-  /// The number that should be displayed
-  ///
-  /// It should fit following constraints:
-  ///
-  /// number != null
-  /// number should contain ONLY of numeric values
+  /// Function used to parse the number into a double. This is
+  /// used to compare if the number increases or decreases on
+  /// each change. Useful if you are displaying a currency value
+  /// and need a special funciton to parse that currency into its
+  /// numeric representation.
+  final double Function(String) parseNumber;
+
+  /// The numeric value that should be displayed, formatted as a string.
+  /// This could be a currency like `$32.00` or just a number `5.00`.
   final String number;
 
-  /// The TextStyle of each number tile
-  ///
-  /// defaults to: TextStyle(fontSize: 16.0)
+  /// The TextStyle to use.
   final TextStyle textStyle;
 
-  /// The duration of the whole animation
-  ///
-  /// defaults to: const Duration(milliseconds: 1500)
-  final Duration duration;
+  /// Duration of number change animation.
+  final Duration numberDuration;
 
-  /// The Curve in which the animation is displayed
-  ///
-  /// defaults to: Curves.easeIn
-  final Curve curve;
+  /// Curve for number change animation.
+  final Curve numberCurve;
+
+  /// Duration of color change animation.
+  final Duration colorDuration;
+
+  /// Curve for color change animation.
+  final Curve colorCurve;
+
+  /// Colors for number increase/decrease
+  final Color increaseColor;
+  final Color decreaseColor;
 
   @override
   _NumberSlideAnimationState createState() => _NumberSlideAnimationState();
 }
 
 class _NumberSlideAnimationState extends State<NumberSlideAnimation> {
+  var latestChange = NumberChange.noChange;
+
   @override
   void didUpdateWidget(oldWidget) {
-    final increased =
-        double.parse(widget.number) > double.parse(oldWidget.number);
-    colorTween = ColorTween(
-      begin: widget.textStyle.color,
-      end: increased ? widget.increaseColor : widget.decreaseColor,
+    final parsedNewValue = widget.parseNumber(widget.number);
+    final parsedOldValue = oldWidget.parseNumber(oldWidget.number);
+
+    setState(
+      () => latestChange = parsedNewValue > parsedOldValue
+          ? NumberChange.increase
+          : parsedNewValue < parsedOldValue
+              ? NumberChange.decrease
+              : NumberChange.noChange,
     );
-
-    colorAnimation = colorTween.animate(animationController)
-      ..addListener(() {
-        print('animating');
-        setState(() {});
-      });
-
-    animationController.reset();
-    animationController.forward();
 
     super.didUpdateWidget(oldWidget);
   }
@@ -81,12 +91,15 @@ class _NumberSlideAnimationState extends State<NumberSlideAnimation> {
           }
 
           return NumberCol(
+            colorCurve: widget.colorCurve,
+            colorDuration: widget.colorDuration,
             number: int.parse(e),
             textStyle: widget.textStyle,
-            duration: widget.duration,
-            curve: widget.curve,
-            increaseColor: Color(0xFF28AFB0),
-            decreaseColor: Color(0xFFDF9097),
+            numberDuration: widget.numberDuration,
+            numberCurve: widget.numberCurve,
+            increaseColor: widget.increaseColor,
+            decreaseColor: widget.decreaseColor,
+            latestChange: latestChange,
           );
         }).toList(),
       ],

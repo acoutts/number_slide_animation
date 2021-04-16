@@ -46,7 +46,9 @@ class _ExampleState extends State<Example> {
             child: Text(
               number.toStringAsFixed(2),
               style: TextStyle(
-                fontSize: 40,
+                fontSize: 60.0,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -55,12 +57,19 @@ class _ExampleState extends State<Example> {
           ),
           Center(
             child: NumberSlideAnimation(
+              colorCurve: Curves.easeIn,
+              colorDuration: Duration(milliseconds: 200),
+              parseNumber: (val) => double.parse(val),
               number: number.toStringAsFixed(2),
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.ease,
+              numberDuration: const Duration(milliseconds: 400),
+              numberCurve: Curves.easeOutCubic,
               textStyle: TextStyle(
-                fontSize: 40.0,
+                fontSize: 60.0,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
               ),
+              increaseColor: Color(0xFF28AFB0),
+              decreaseColor: Color(0xFFDF9097),
             ),
           ),
           SizedBox(

@@ -6,24 +6,24 @@ void main() {
   test('try initializing with invalid number', () {
     expect(
         () => new NumberCol(
-              duration: const Duration(seconds: 1),
-              curve: Curves.easeIn,
+              numberDuration: const Duration(seconds: 1),
+              numberCurve: Curves.easeIn,
               textStyle: TextStyle(fontSize: 16.0),
               number: 10,
             ),
         throwsAssertionError);
     expect(
         () => new NumberCol(
-              duration: const Duration(seconds: 1),
-              curve: Curves.easeIn,
+              numberDuration: const Duration(seconds: 1),
+              numberCurve: Curves.easeIn,
               textStyle: TextStyle(fontSize: 16.0),
               number: -100,
             ),
         throwsAssertionError);
     expect(
         () => new NumberCol(
-              duration: const Duration(seconds: 1),
-              curve: Curves.easeIn,
+              numberDuration: const Duration(seconds: 1),
+              numberCurve: Curves.easeIn,
               textStyle: TextStyle(fontSize: 16.0),
               number: 100,
             ),
